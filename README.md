@@ -1,3 +1,4 @@
+<img width="899" height="809" alt="Screenshot 2026-04-26 at 9 49 31 PM" src="https://github.com/user-attachments/assets/4a4ee064-f1d7-4e20-b82c-15608a56d2aa" />
 # AgentBench for Cloudflare
 
 `cf_ai_agentbench` is an original Cloudflare-native AI code review app built for the Cloudflare internship assignment. It lets a user paste a task prompt, code diff, and optional repository context into a chat interface, then generates a structured review with a PR summary, overall assessment, scorecard, key risks, missing tests, suggested improvements, and grounding notes. After each completed review, the app saves a compact history entry so the user can ask follow-up questions about previous risks or compare the current review to an earlier one.
@@ -6,12 +7,9 @@
 https://cf-ai-agentbench.nidhikonanurtbsg.workers.dev
 
 ## Demo
-<img width="1011" height="821" alt="Screenshot 2026-04-26 at 9 47 55 PM" src="https://github.com/user-attachments/assets/dadf2741-ecb4-454b-ae3d-7b91ee896b10" />
+<img width="897" height="808" alt="Screenshot 2026-04-26 at 9 49 52 PM" src="https://github.com/user-attachments/assets/5295be8b-019d-4264-8736-d940b69c4922" />
 <img width="910" height="824" alt="Screenshot 2026-04-26 at 9 48 25 PM" src="https://github.com/user-attachments/assets/d4123bfb-3a15-45de-aa26-1910a72dfac9" />
 <img width="903" height="827" alt="Screenshot 2026-04-26 at 9 48 45 PM" src="https://github.com/user-attachments/assets/0e2434bd-2eef-42d9-a0d4-bffc47030463" />
-
-
-
 
 ## What the app does
 
