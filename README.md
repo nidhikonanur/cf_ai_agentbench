@@ -5,6 +5,14 @@
 ## Live Demo
 https://cf-ai-agentbench.nidhikonanurtbsg.workers.dev
 
+## Demo
+<img width="1011" height="821" alt="Screenshot 2026-04-26 at 9 47 55 PM" src="https://github.com/user-attachments/assets/dadf2741-ecb4-454b-ae3d-7b91ee896b10" />
+<img width="910" height="824" alt="Screenshot 2026-04-26 at 9 48 25 PM" src="https://github.com/user-attachments/assets/d4123bfb-3a15-45de-aa26-1910a72dfac9" />
+<img width="903" height="827" alt="Screenshot 2026-04-26 at 9 48 45 PM" src="https://github.com/user-attachments/assets/0e2434bd-2eef-42d9-a0d4-bffc47030463" />
+
+
+
+
 ## What the app does
 
 The app focuses on one workflow: reviewing a proposed code change in chat.
