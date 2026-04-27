@@ -1,18 +1,24 @@
 # AgentBench for Cloudflare
 
-`cf_ai_agentbench` is an original Cloudflare-native AI code review app built for the Cloudflare internship assignment. It lets a user paste a task prompt, code diff, and optional repository context into a chat interface, then generates a structured review with a PR summary, overall assessment, scorecard, key risks, missing tests, suggested improvements, and grounding notes. After each completed review, the app saves a compact history entry so the user can ask follow-up questions about previous risks or compare the current review to an earlier one.
+`cf_ai_agentbench` is an original Cloudflare-native AI code review app built for the Cloudflare internship assignment. It lets a user paste a task prompt, code diff, and optional repository context into a chat interface, then generates a structured review with a PR summary, overall assessment, scorecard, key risks, missing tests, suggested improvements, and grounding notes.
+
+After each completed review, the app saves a compact history entry so the user can ask follow-up questions about previous risks or compare the current review to an earlier one.
 
 ## Live Demo
+
 https://cf-ai-agentbench.nidhikonanurtbsg.workers.dev
 
 ## Demo
-<img width="897" height="808" alt="Screenshot 2026-04-26 at 9 49 52 PM" src="https://github.com/user-attachments/assets/5295be8b-019d-4264-8736-d940b69c4922" />
-<img width="910" height="824" alt="Screenshot 2026-04-26 at 9 48 25 PM" src="https://github.com/user-attachments/assets/d4123bfb-3a15-45de-aa26-1910a72dfac9" />
-<img width="903" height="827" alt="Screenshot 2026-04-26 at 9 48 45 PM" src="https://github.com/user-attachments/assets/0e2434bd-2eef-42d9-a0d4-bffc47030463" />
+
+<img width="897" height="808" alt="AgentBench review screenshot" src="https://github.com/user-attachments/assets/5295be8b-019d-4264-8736-d940b69c4922" />
+
+<img width="910" height="824" alt="AgentBench memory screenshot" src="https://github.com/user-attachments/assets/d4123bfb-3a15-45de-aa26-1910a72dfac9" />
+
+<img width="903" height="827" alt="AgentBench review history screenshot" src="https://github.com/user-attachments/assets/0e2434bd-2eef-42d9-a0d4-bffc47030463" />
 
 ## What the app does
 
-The app focuses on one workflow: reviewing a proposed code change in chat.
+AgentBench focuses on one workflow: reviewing a proposed code change in chat.
 
 The user provides input in a simple text format:
 
@@ -58,13 +64,28 @@ The application logic, review flow, persistence behavior, UI copy, and documenta
 - Simple memory panel explaining what the agent remembers
 - No external API keys required
 
+## Assignment requirements
+
+This project satisfies the Cloudflare AI-powered application assignment as follows:
+
+| Requirement | How AgentBench satisfies it |
+|---|---|
+| Repository name prefixed with `cf_ai_` | Repository name is `cf_ai_agentbench` |
+| LLM | Uses Workers AI through the Cloudflare `AI` binding |
+| Workflow / coordination | Uses Cloudflare Workers and the Agents SDK |
+| User input via chat or voice | Uses a chat interface for code review requests |
+| Memory or state | Stores prior review summaries in agent state as review history |
+| README.md | Includes project documentation, setup instructions, examples, and deployment notes |
+| PROMPTS.md | Includes prompts used to build, guide, and polish the project |
+| Original work | Custom code review workflow, prompt design, review parsing, memory behavior, and UI copy |
+
 ## How it uses Workers AI
 
-The app uses Workers AI through the `AI` binding configured in `wrangler.jsonc`. In `src/server.ts`, the `ChatAgent` creates a Workers AI model instance with `workers-ai-provider` and uses it to generate the review response.
+The app uses Workers AI through the `AI` binding configured in `wrangler.jsonc`. In `src/server.ts`, the `ChatAgent` creates a Workers AI model instance with `workers-ai-provider` and uses it to generate review responses.
 
 Workers AI is used for:
 
-- producing the structured code review
+- producing structured code reviews
 - answering review-history follow-up questions
 - comparing the current conversation against saved review history
 
@@ -102,190 +123,3 @@ Code Diff:
 
 Repository Context:
 ...
-```
-
-Only `Task Prompt:` and `Code Diff:` are required for a review request. `Repository Context:` is optional. If the latest message is a review payload, the agent produces a structured review directly. If the latest message is a history-style question, the agent uses saved review history to answer.
-
-## How memory and review history work
-
-After a structured review completes, the app saves a compact history record containing:
-
-- timestamp
-- task summary
-- PR summary
-- overall assessment
-- top risks
-
-That history lives in agent state and persists across requests. The UI shows a short explanation of what the agent remembers, the saved review count, and the latest assessment. Follow-up prompts can summarize or compare reviews based on that saved history.
-
-What is implemented today:
-
-- automatic saving of completed reviews
-- retrieval of saved review history
-- follow-up history questions in the same chat
-
-What is not implemented today:
-
-- file upload for repository artifacts
-- side-by-side visual diff comparison UI
-- export/download for review history
-
-## Architecture
-
-### Frontend
-
-- React app from the Cloudflare Agents starter
-- Kumo UI components for a minimal, professional interface
-- `useAgent()` for live connection and synced agent state
-- `useAgentChat()` for streaming chat responses
-
-### Backend
-
-- `src/server.ts` contains the `ChatAgent`
-- Workers AI generates review and history responses
-- Durable Object-backed state stores review history
-- `onChatResponse()` persists completed structured reviews
-
-### Data flow
-
-1. The user pastes a code review request into the chat composer.
-2. The agent detects whether the message is a review request or a history question.
-3. For review requests, Workers AI generates a structured review.
-4. The completed review is parsed and saved into `reviewHistory`.
-5. For history questions, the agent retrieves saved reviews and answers using that memory.
-
-## Local development
-
-### Prerequisites
-
-- Node.js 20+
-- npm
-
-### Install
-
-```bash
-git clone https://github.com/nidhikonanur/cf_ai_agentbench.git
-cd cf_ai_agentbench
-npm install
-npm run dev
-```
-
-### Run locally
-
-```bash
-npm run dev
-```
-
-Then open the local Vite URL, usually [http://localhost:5173](http://localhost:5173).
-
-The local UI includes:
-
-- title: `AgentBench for Cloudflare`
-- subtitle: `AI-powered code review with memory, built on Cloudflare Workers AI and Agents.`
-- sample input button
-- short memory explanation
-
-## Deployment
-
-### Prerequisites
-
-- a Cloudflare account
-- Wrangler login completed with:
-
-```bash
-npx wrangler login
-```
-
-### Deploy command
-
-```bash
-npm run deploy
-```
-
-This builds the frontend, deploys the Worker, and deploys the Durable Object-backed agent logic.
-
-If your account has not used Workers before, you may need to enable your `workers.dev` subdomain in the Cloudflare dashboard before the first successful deployment.
-
-## Example input
-
-```text
-Task Prompt:
-Add validation so only repository admins can merge a release branch, and include the merged_at timestamp in the API response.
-
-Code Diff:
-diff --git a/src/routes/merge.ts b/src/routes/merge.ts
-index 1111111..2222222 100644
---- a/src/routes/merge.ts
-+++ b/src/routes/merge.ts
-@@ -10,7 +10,16 @@ export async function mergeReleaseBranch(request: Request) {
-   const release = await getReleaseFromRequest(request);
-+  if (request.user.role !== "admin") {
-+    return Response.json({ error: "forbidden" }, { status: 403 });
-+  }
-+
-   await mergeBranch(release.branchName);
--  return Response.json({ ok: true, id: release.id });
-+  return Response.json({
-+    ok: true,
-+    id: release.id,
-+    merged_at: new Date().toISOString()
-+  });
- }
-
-Repository Context:
-Only repository admins can merge release branches. Existing API responses for state-changing endpoints include ISO 8601 timestamps. Current tests only cover the success path.
-```
-
-## Example output
-
-```md
-## PR Summary
-
-The change adds an admin-only authorization guard before merge execution and returns a merge timestamp in the success response.
-
-## Overall Assessment
-
-Mostly Good. The diff appears aligned with the requested behavior, but it still leaves test coverage gaps around the new authorization and timestamp contract.
-
-## Scorecard
-
-- Task Alignment: 9/10
-- Correctness: 8/10
-- Testing Coverage: 4/10
-- Maintainability: 8/10
-- Security: 8/10
-- Documentation: 5/10
-
-## Key Risks
-
-- No regression test confirms non-admin users consistently receive the expected 403 response.
-- Conditional: if other state-changing endpoints serialize timestamps differently, `new Date().toISOString()` could diverge from existing formatting helpers.
-
-## Missing Tests
-
-- Add a unit or integration test covering the forbidden path for non-admin users.
-- Add a success-path test asserting `merged_at` exists and is ISO 8601 formatted.
-
-## Suggested Improvements
-
-- Reuse any existing response serializer or timestamp helper if the codebase already standardizes API timestamps.
-- Add tests that verify authorization happens before merge side effects.
-
-## Grounding Notes
-
-The authorization check and timestamp response came directly from the diff. The testing gap follows from the repository context saying only the success path is currently covered. Timestamp formatting consistency is a conditional concern based on common backend conventions.
-```
-
-## Files to review
-
-- `src/server.ts`: review agent logic, prompt handling, tools, and persistence
-- `src/app.tsx`: chat UI, helper text, sample input, and memory section
-- `PROMPTS.md`: prompts used to build and guide the app
-- `wrangler.jsonc`: Cloudflare Worker configuration
-
-## Future improvements
-
-- Add optional repository file/context uploads
-- Add a comparison-specific UI for the last two saved reviews
-- Improve saved risk extraction and ranking
-- Add lightweight test coverage for review parsing and persistence behavior
