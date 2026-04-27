@@ -236,6 +236,17 @@ Use Durable Object-backed agent state to persist prior review summaries and expo
 ```text
 Simplify the starter UI so it focuses on code review chat, sample input, and visible memory status.
 ```
+## Manual testing prompts
+
+```text
+Task Prompt:
+Add validation so only repository admins can merge a release branch, and include the merged_at timestamp in the API response.
+
+Code Diff:
+[paste sample diff]
+
+Repository Context:
+Only repository admins can merge release branches. Existing API responses for state-changing endpoints include ISO 8601 timestamps. Current tests only cover the success path.
 
 ## Note on AI-assisted coding
 
