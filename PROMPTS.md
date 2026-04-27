@@ -247,7 +247,10 @@ Code Diff:
 
 Repository Context:
 Only repository admins can merge release branches. Existing API responses for state-changing endpoints include ISO 8601 timestamps. Current tests only cover the success path.
+```
 
 ## Note on AI-assisted coding
+```text
 
 AI-assisted coding was used to help scaffold and iterate on this project. All generated code and generated documentation were reviewed, edited, and adapted to fit the assignment requirements and to avoid claiming features that are not implemented.
+```
