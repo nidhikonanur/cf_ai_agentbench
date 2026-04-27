@@ -2,6 +2,9 @@
 
 `cf_ai_agentbench` is an original Cloudflare-native AI code review app built for the Cloudflare internship assignment. It lets a user paste a task prompt, code diff, and optional repository context into a chat interface, then generates a structured review with a PR summary, overall assessment, scorecard, key risks, missing tests, suggested improvements, and grounding notes. After each completed review, the app saves a compact history entry so the user can ask follow-up questions about previous risks or compare the current review to an earlier one.
 
+## Live Demo
+https://cf-ai-agentbench.nidhikonanurtbsg.workers.dev
+
 ## What the app does
 
 The app focuses on one workflow: reviewing a proposed code change in chat.
@@ -19,7 +22,7 @@ The agent reads that payload, evaluates the diff against the task, and returns a
 
 ## Why this project is original
 
-This project is not a generic starter with renamed labels. I adapted the Cloudflare Agents starter into a focused code review workflow with:
+I adapted the Cloudflare Agents starter into a focused code review workflow with:
 
 - custom prompt design for code review
 - review-specific input parsing
