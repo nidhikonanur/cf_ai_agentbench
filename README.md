@@ -1,237 +1,281 @@
-# Agent Starter
+# AgentBench for Cloudflare
 
-![npm i agents command](./npm-agents-banner.svg)
+`cf_ai_agentbench` is an original Cloudflare-native AI code review app built for the Cloudflare internship assignment. It lets a user paste a task prompt, code diff, and optional repository context into a chat interface, then generates a structured review with a PR summary, overall assessment, scorecard, key risks, missing tests, suggested improvements, and grounding notes. After each completed review, the app saves a compact history entry so the user can ask follow-up questions about previous risks or compare the current review to an earlier one.
 
-<a href="https://deploy.workers.cloudflare.com/?url=https://github.com/cloudflare/agents-starter"><img src="https://deploy.workers.cloudflare.com/button" alt="Deploy to Cloudflare"/></a>
+## What the app does
 
-A starter template for building AI chat agents on Cloudflare, powered by the [Agents SDK](https://developers.cloudflare.com/agents/).
+The app focuses on one workflow: reviewing a proposed code change in chat.
 
-Uses Workers AI (no API key required), with tools for weather, timezone detection, calculations with approval, task scheduling, and vision (image input).
+The user provides input in a simple text format:
 
-## Quick start
+- `Task Prompt:`
+- `Code Diff:`
+- `Repository Context:`
+
+The agent reads that payload, evaluates the diff against the task, and returns a structured review that is easy to scan. The same chat also supports memory-based follow-ups such as:
+
+- `summarize previous risks`
+- `compare this to my last review`
+
+## Why this project is original
+
+This project is not a generic starter with renamed labels. I adapted the Cloudflare Agents starter into a focused code review workflow with:
+
+- custom prompt design for code review
+- review-specific input parsing
+- structured review output
+- persisted review history
+- follow-up memory queries tied to prior reviews
+
+The application logic, review flow, persistence behavior, UI copy, and documentation were customized specifically for this assignment.
+
+## Features
+
+- Chat-based code review using the Cloudflare Agents SDK
+- Structured review format with:
+  - `PR Summary`
+  - `Overall Assessment`
+  - `Scorecard`
+  - `Key Risks`
+  - `Missing Tests`
+  - `Suggested Improvements`
+  - `Grounding Notes`
+- Review request parsing for:
+  - `Task Prompt:`
+  - `Code Diff:`
+  - `Repository Context:`
+- Review memory stored in agent state
+- Follow-up support for saved review history
+- Sample input button in the UI
+- Simple memory panel explaining what the agent remembers
+- No external API keys required
+
+## How it uses Workers AI
+
+The app uses Workers AI through the `AI` binding configured in `wrangler.jsonc`. In `src/server.ts`, the `ChatAgent` creates a Workers AI model instance with `workers-ai-provider` and uses it to generate the review response.
+
+Workers AI is used for:
+
+- producing the structured code review
+- answering review-history follow-up questions
+- comparing the current conversation against saved review history
+
+The model receives:
+
+- the current chat conversation
+- a code-review system prompt
+- dynamic context derived from the latest review payload
+- a digest of recent saved review history
+
+## How it uses Workers, Agents SDK, Durable Objects, and state
+
+This app is built on Cloudflare’s Agents starter and keeps the core Cloudflare-native architecture intact:
+
+- `ChatAgent` extends `AIChatAgent`
+- the agent runs as a Durable Object-backed Worker
+- review history is stored in agent state as `reviewHistory`
+- saved history is synchronized through the Agents SDK state model
+- callable methods expose:
+  - `saveReview(summary, assessment, risks)`
+  - `getReviewHistory()`
+
+The current implementation automatically saves completed structured reviews in `onChatResponse()`. History queries use `getReviewHistory()` when the user asks for prior risks or comparisons.
+
+## How chat input works
+
+The main composer expects a review request in plain text. The app is designed around three labeled sections:
+
+```text
+Task Prompt:
+...
+
+Code Diff:
+...
+
+Repository Context:
+...
+```
+
+Only `Task Prompt:` and `Code Diff:` are required for a review request. `Repository Context:` is optional. If the latest message is a review payload, the agent produces a structured review directly. If the latest message is a history-style question, the agent uses saved review history to answer.
+
+## How memory and review history work
+
+After a structured review completes, the app saves a compact history record containing:
+
+- timestamp
+- task summary
+- PR summary
+- overall assessment
+- top risks
+
+That history lives in agent state and persists across requests. The UI shows a short explanation of what the agent remembers, the saved review count, and the latest assessment. Follow-up prompts can summarize or compare reviews based on that saved history.
+
+What is implemented today:
+
+- automatic saving of completed reviews
+- retrieval of saved review history
+- follow-up history questions in the same chat
+
+What is not implemented today:
+
+- file upload for repository artifacts
+- side-by-side visual diff comparison UI
+- export/download for review history
+
+## Architecture
+
+### Frontend
+
+- React app from the Cloudflare Agents starter
+- Kumo UI components for a minimal, professional interface
+- `useAgent()` for live connection and synced agent state
+- `useAgentChat()` for streaming chat responses
+
+### Backend
+
+- `src/server.ts` contains the `ChatAgent`
+- Workers AI generates review and history responses
+- Durable Object-backed state stores review history
+- `onChatResponse()` persists completed structured reviews
+
+### Data flow
+
+1. The user pastes a code review request into the chat composer.
+2. The agent detects whether the message is a review request or a history question.
+3. For review requests, Workers AI generates a structured review.
+4. The completed review is parsed and saved into `reviewHistory`.
+5. For history questions, the agent retrieves saved reviews and answers using that memory.
+
+## Local development
+
+### Prerequisites
+
+- Node.js 20+
+- npm
+
+### Install
 
 ```bash
-npx create-cloudflare@latest --template cloudflare/agents-starter
-cd agents-starter
+cd /Users/nidhikonanur/Documents/Playground/cf_ai_agentbench
 npm install
+```
+
+### Run locally
+
+```bash
 npm run dev
 ```
 
-Open [http://localhost:5173](http://localhost:5173) to see your agent in action.
+Then open the local Vite URL, usually [http://localhost:5173](http://localhost:5173).
 
-Try these prompts to see the different features:
+The local UI includes:
 
-- **"What's the weather in Paris?"** — server-side tool (runs automatically)
-- **"What timezone am I in?"** — client-side tool (browser provides the answer)
-- **"Calculate 5000 \* 3"** — approval tool (asks you before running)
-- **"Remind me in 5 minutes to take a break"** — scheduling
-- **Drop an image and ask "What's in this image?"** — vision (image understanding)
+- title: `AgentBench for Cloudflare`
+- subtitle: `AI-powered code review with memory, built on Cloudflare Workers AI and Agents.`
+- sample input button
+- short memory explanation
 
-## Project structure
+## Deployment
 
-```
-src/
-  server.ts    # Chat agent with tools and scheduling
-  app.tsx      # Chat UI built with Kumo components
-  client.tsx   # React entry point
-  styles.css   # Tailwind + Kumo styles
-```
+### Prerequisites
 
-## What's included
-
-- **AI Chat** — Streaming responses powered by Workers AI via `AIChatAgent`
-- **Image input** — Drag-and-drop, paste, or click to attach images for vision-capable models
-- **Three tool patterns** — server-side auto-execute, client-side (browser), and human-in-the-loop approval
-- **Scheduling** — one-time, delayed, and recurring (cron) tasks
-- **Reasoning display** — shows model thinking as it streams, collapses when done
-- **Debug mode** — toggle in the header to inspect raw message JSON for each message
-- **Kumo UI** — Cloudflare's design system with dark/light mode
-- **Real-time** — WebSocket connection with automatic reconnection and message persistence
-
-## Making it your own
-
-### Name your project
-
-Update the name in `package.json` and `wrangler.jsonc` — the `name` in `wrangler.jsonc` becomes your deployed Worker's URL (`<name>.<subdomain>.workers.dev`).
-
-### Change the system prompt
-
-Edit the `system` string in `server.ts` to give your agent a different personality or focus area. This is the most impactful single change you can make.
-
-### Replace the demo tools with real ones
-
-The starter ships with demo tools (`getWeather` returns random data, `calculate` does basic arithmetic). Replace them with real implementations:
-
-```ts
-// In server.ts, replace a demo tool with a real API call:
-getWeather: tool({
-  description: "Get the current weather for a city",
-  inputSchema: z.object({ city: z.string() }),
-  execute: async ({ city }) => {
-    const res = await fetch(`https://api.weather.example/${city}`);
-    return res.json();
-  }
-}),
-```
-
-### Add your own tools
-
-Add new tools to the `tools` object in `server.ts`. There are three patterns:
-
-```ts
-// Auto-execute: runs on the server, no user interaction
-myTool: tool({
-  description: "...",
-  inputSchema: z.object({ /* ... */ }),
-  execute: async (input) => { /* return result */ }
-}),
-
-// Client-side: no execute function, browser provides the result
-// Handle it in app.tsx via the onToolCall callback
-browserTool: tool({
-  description: "...",
-  inputSchema: z.object({ /* ... */ })
-}),
-
-// Approval: add needsApproval to gate execution
-sensitiveTool: tool({
-  description: "...",
-  inputSchema: z.object({ /* ... */ }),
-  needsApproval: async (input) => true, // or conditional logic
-  execute: async (input) => { /* runs after approval */ }
-}),
-```
-
-### Customize scheduled task behavior
-
-When a scheduled task fires, `executeTask` runs on the server. It does its work and then uses `this.broadcast()` to notify connected clients (shown as a toast notification in the UI). Replace it with your own logic:
-
-```ts
-async executeTask(description: string, task: Schedule<string>) {
-  // Do the actual work
-  await sendEmail({ to: "user@example.com", subject: description });
-
-  // Notify connected clients
-  this.broadcast(
-    JSON.stringify({ type: "scheduled-task", description, timestamp: new Date().toISOString() })
-  );
-}
-```
-
-> **Why `broadcast()` instead of `saveMessages()`?** Injecting into chat history can cause the AI to see the notification as new context and re-trigger the same task in a loop. `broadcast()` sends a one-off event that the client displays separately from the conversation.
-
-### Remove scheduling
-
-If you don't need scheduling, remove `scheduleTask`, `getScheduledTasks`, and `cancelScheduledTask` from the tools object, the `executeTask` method, and the schedule-related imports (`getSchedulePrompt`, `scheduleSchema`, `Schedule`, `generateId`).
-
-### Add state beyond chat messages
-
-Use `this.setState()` and `this.state` for real-time state that syncs to all connected clients. See [Store and sync state](https://developers.cloudflare.com/agents/api-reference/store-and-sync-state/).
-
-### Add callable methods
-
-Expose agent methods as typed RPC that your client can call directly:
-
-```ts
-import { callable } from "agents";
-
-export class ChatAgent extends AIChatAgent<Env> {
-  @callable()
-  async getStats() {
-    return { messageCount: this.messages.length };
-  }
-}
-
-// Client-side:
-const stats = await agent.call("getStats");
-```
-
-See [Callable methods](https://developers.cloudflare.com/agents/api-reference/callable-methods/).
-
-### Connect to MCP servers
-
-Add external tools from MCP servers:
-
-```ts
-async onChatMessage(onFinish, options) {
-  // Connect to an MCP server
-  await this.mcp.connect("https://my-mcp-server.example/sse");
-
-  const result = streamText({
-    // ...
-    tools: {
-      ...myTools,
-      ...this.mcp.getAITools() // Include MCP tools
-    }
-  });
-}
-```
-
-See [MCP Client API](https://developers.cloudflare.com/agents/api-reference/mcp-client-api/).
-
-## Use a different AI model provider
-
-The starter uses [Workers AI](https://developers.cloudflare.com/workers-ai/) by default (no API key needed). To use a different provider:
-
-### OpenAI
+- a Cloudflare account
+- Wrangler login completed with:
 
 ```bash
-npm install @ai-sdk/openai
+npx wrangler login
 ```
 
-```ts
-// In server.ts, replace the model:
-import { openai } from "@ai-sdk/openai";
-
-// Inside onChatMessage:
-const result = streamText({
-  model: openai("gpt-5.2")
-  // ...
-});
-```
-
-Create a `.env` file with your API key:
-
-```
-OPENAI_API_KEY=your-key-here
-```
-
-### Anthropic
-
-```bash
-npm install @ai-sdk/anthropic
-```
-
-```ts
-import { anthropic } from "@ai-sdk/anthropic";
-
-const result = streamText({
-  model: anthropic("claude-sonnet-4-20250514")
-  // ...
-});
-```
-
-Create a `.env` file with your API key:
-
-```
-ANTHROPIC_API_KEY=your-key-here
-```
-
-## Deploy
+### Deploy command
 
 ```bash
 npm run deploy
 ```
 
-Your agent is live on Cloudflare's global network. Messages persist in SQLite, streams resume on disconnect, and the agent hibernates when idle.
+This builds the frontend, deploys the Worker, and deploys the Durable Object-backed agent logic.
 
-## Learn more
+If your account has not used Workers before, you may need to enable your `workers.dev` subdomain in the Cloudflare dashboard before the first successful deployment.
 
-- [Agents SDK documentation](https://developers.cloudflare.com/agents/)
-- [Build a chat agent tutorial](https://developers.cloudflare.com/agents/getting-started/build-a-chat-agent/)
-- [Chat agents API reference](https://developers.cloudflare.com/agents/api-reference/chat-agents/)
-- [Workers AI models](https://developers.cloudflare.com/workers-ai/models/)
+## Example input
 
-## License
+```text
+Task Prompt:
+Add validation so only repository admins can merge a release branch, and include the merged_at timestamp in the API response.
 
-MIT
+Code Diff:
+diff --git a/src/routes/merge.ts b/src/routes/merge.ts
+index 1111111..2222222 100644
+--- a/src/routes/merge.ts
++++ b/src/routes/merge.ts
+@@ -10,7 +10,16 @@ export async function mergeReleaseBranch(request: Request) {
+   const release = await getReleaseFromRequest(request);
++  if (request.user.role !== "admin") {
++    return Response.json({ error: "forbidden" }, { status: 403 });
++  }
++
+   await mergeBranch(release.branchName);
+-  return Response.json({ ok: true, id: release.id });
++  return Response.json({
++    ok: true,
++    id: release.id,
++    merged_at: new Date().toISOString()
++  });
+ }
+
+Repository Context:
+Only repository admins can merge release branches. Existing API responses for state-changing endpoints include ISO 8601 timestamps. Current tests only cover the success path.
+```
+
+## Example output
+
+```md
+## PR Summary
+
+The change adds an admin-only authorization guard before merge execution and returns a merge timestamp in the success response.
+
+## Overall Assessment
+
+Mostly Good. The diff appears aligned with the requested behavior, but it still leaves test coverage gaps around the new authorization and timestamp contract.
+
+## Scorecard
+
+- Task Alignment: 9/10
+- Correctness: 8/10
+- Testing Coverage: 4/10
+- Maintainability: 8/10
+- Security: 8/10
+- Documentation: 5/10
+
+## Key Risks
+
+- No regression test confirms non-admin users consistently receive the expected 403 response.
+- Conditional: if other state-changing endpoints serialize timestamps differently, `new Date().toISOString()` could diverge from existing formatting helpers.
+
+## Missing Tests
+
+- Add a unit or integration test covering the forbidden path for non-admin users.
+- Add a success-path test asserting `merged_at` exists and is ISO 8601 formatted.
+
+## Suggested Improvements
+
+- Reuse any existing response serializer or timestamp helper if the codebase already standardizes API timestamps.
+- Add tests that verify authorization happens before merge side effects.
+
+## Grounding Notes
+
+The authorization check and timestamp response came directly from the diff. The testing gap follows from the repository context saying only the success path is currently covered. Timestamp formatting consistency is a conditional concern based on common backend conventions.
+```
+
+## Files to review
+
+- `src/server.ts`: review agent logic, prompt handling, tools, and persistence
+- `src/app.tsx`: chat UI, helper text, sample input, and memory section
+- `PROMPTS.md`: prompts used to build and guide the app
+- `wrangler.jsonc`: Cloudflare Worker configuration
+
+## Future improvements
+
+- Add optional repository file/context uploads
+- Add a comparison-specific UI for the last two saved reviews
+- Improve saved risk extraction and ranking
+- Add lightweight test coverage for review parsing and persistence behavior

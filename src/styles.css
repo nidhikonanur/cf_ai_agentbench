@@ -11,3 +11,7 @@ body,
   height: 100%;
   margin: 0;
 }
+
+body {
+  font-family: "Instrument Sans", "Avenir Next", "Segoe UI", sans-serif;
+}
