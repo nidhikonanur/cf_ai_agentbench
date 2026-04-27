@@ -156,8 +156,10 @@ What is not implemented today:
 ### Install
 
 ```bash
-cd /Users/nidhikonanur/Documents/Playground/cf_ai_agentbench
+git clone https://github.com/nidhikonanur/cf_ai_agentbench.git
+cd cf_ai_agentbench
 npm install
+npm run dev
 ```
 
 ### Run locally
